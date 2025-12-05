@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MTEC — Automação Industrial (Plataforma) — Versão Fluida</title>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.9.0/lib/pptxgen.bundle.js"></script>
+
+<style>
+/* ------------------------------------- */
+/* Variáveis de Tema (Padrão: Claro) */
+/* Você pode alterar as cores base do seu site aqui */
+/* ------------------------------------- */
+:root{
+  --bg-color:#f6f8fb; --panel-color:#ffffff; --card-color:#ffffff; --text-color:#0b2545; --muted-color:#51627a;
+  --accent-color:#1366d6; --accent-2-color:#60a5fa; 
+  --border-color:rgba(11,37,69,0.07);
+
+  /* Variáveis principais de uso */
+  --bg: var(--bg-color); 
+  --panel: var(--panel-color); 
+  --card: var(--card-color); 
+  --text: var(--text-color); 
+  --muted: var(--muted-color); 
+  --accent: var(--accent-color); 
+  --accent-2: var(--accent-2-color);
+  --border: var(--border-color);
+
+  --radius:10px; --gap:12px; --base-font:15px;
+
+  /* Variáveis para cores personalizadas (configuradas via JS) */
+  --custom-bg-color: #f6f8fb;
+  --custom-panel-color: #ffffff;
+  --custom-text-color: #0b2545;
+}
+
+/* TEMA ESCURO (DARK) - Ajustes de Contraste */
+html[data-theme="dark"] {
+  --bg-color: #121212; 
+  --panel-color: #1e1e1e; 
+  --card-color: #242424; 
+  --text-color: #ffffff; 
+  --muted-color: #bbbbbb; 
+  --accent-color: #64b5f6; 
+  --accent-2-color: #90caf9;
+  --border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* TEMA INDUSTRIAL - Ajustes de Contraste */
+html[data-theme="industrial"] {
+  --bg-color: #2d3436;
+  --panel-color: #636e72;
+  --card-color: #b2bec3;
+  --text-color: #ffeaa7; /* Texto amarelo claro */
+  --muted-color: #dfe6e9;
+  --accent-color: #0984e3;
+  --accent-2-color: #74b9ff;
+  --border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* TEMA EDUCACIONAL - Ajustes de Contraste */
+html[data-theme="educational"] {
+  --bg-color: #e0f7fa;
+  --panel-color: #ffffff;
+  --card-color: #ffffff;
+  --text-color: #004d40;
+  --muted-color: #4db6ac;
+  --accent-color: #00897b;
+  --accent-2-color: #26a69a;
+  --border-color: rgba(0, 77, 64, 0.1);
+}
+
+/* TEMA PERSONALIZADO - USA AS VARIAVEIS CUSTOMIZADAS */
+html[data-theme="custom"] {
+  --bg-color: var(--custom-bg-color);
+  --panel-color: var(--custom-panel-color);
+  --card-color: var(--custom-panel-color); 
+  --text-color: var(--custom-text-color); 
+  --muted-color: color-mix(in srgb, var(--custom-text-color) 70%, transparent); /* Garante que o muted seja baseado no texto */
+  /* Mantém accent padrão, mas as cores principais mudam */
+}
+
+/* ------------------------------------- */
+/* Estilos gerais - Aplicam as variáveis */
+/* ------------------------------------- */
+*{box-sizing:border-box}
+html,body{
+  height:100%;margin:0;
+  font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
+  background:var(--bg);color:var(--text);
+  -webkit-font-smoothing:antialiased;font-size:var(--base-font);line-height:1.55;
+  transition: background .3s ease, color .3s ease;
+}
+a{color:var(--accent);text-decoration:none}
+.app-header{
+  height:68px;background:var(--panel);display:flex;align-items:center;
+  justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:30;
+  transition: background .3s ease, border-color .3s ease;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{width:44px;height:44px;border-radius:8px;object-fit:cover}
+.header-center{text-align:center}
+.header-center h1{margin:0;font-size:1.05rem;font-weight:800}
+.header-center p{margin:0;font-size:0.82rem;color:var(--muted)}
+.header-right{display:flex;gap:8px;align-items:center}
+
+/* Shell */
+.app-shell{display:flex;height:calc(100vh - 68px);overflow:hidden}
+#sidebar{
+  width:320px;background:var(--panel);border-right:1px solid var(--border);
+  padding:12px 10px 40px 10px;overflow:auto;
+  transition:transform .3s ease, width .3s ease, background .3s ease, border-color .3s ease;
+}
+#sidebar.hidden{transform:translateX(-340px);width:0}
+.sidebar-section{padding:6px 8px;border-bottom:1px solid var(--border)}
+
+/* Accordion: Título da Série */
+.series-title{font-weight:700;margin-bottom:8px;color:var(--muted);cursor:pointer;user-select:none; display:flex; justify-content:space-between; align-items:center;}
+.series-title::after{content:" ▼"}
+.series-title.collapsed::after{content:" ►"}
+
+/* Accordion: Lista de Disciplinas */
+.disc-list{display:flex;flex-direction:column;gap:6px; overflow:hidden; transition: max-height 0.3s ease-out; }
+.disc-list.collapsed{max-height:0 !important;}
+
+.disc-item{
+  padding:10px;border-radius:8px;cursor:pointer;display:flex;
+  justify-content:space-between;align-items:center;
+  border:1px solid transparent;
+  transition: background .2s ease, border-color .2s ease, transform .1s ease;
+}
+.disc-item:hover{background:rgba(0,0,0,0.03); transform: translateY(-1px);}
+.disc-item.active{background:var(--accent);color:white}
+.disc-name{flex:1;margin-right:8px}
+.disc-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.disc-count{font-weight:700}
+.disc-perc{font-size:12px;color:var(--muted)}
+
+/* Tema Escuro: Ajustes de hover */
+html[data-theme="dark"] .disc-item:hover { 
+  background: rgba(255,255,255,0.05); 
+}
+html[data-theme] .disc-item.active { 
+  color: white; 
+}
+
+/* Sidebar search */
+#sidebar-search{width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);margin-bottom:10px}
+
+/* Sidebar toggle */
+#sidebar-toggle{
+  position:absolute;left:320px;top:18px;width:34px;height:34px;border-radius:8px;
+  border:1px solid var(--border);background:var(--panel);
+  box-shadow:0 6px 18px rgba(2,6,23,0.06);cursor:pointer;z-index:20; 
+  transition: left .3s ease, background .3s ease, border-color .3s ease;
+}
+#sidebar-toggle.hidden{left:8px}
+
+/* Main */
+.main{flex:1;overflow:auto;padding:18px}
+.container{max-width:1200px;margin:0 auto}
+.controls-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.week-controls{display:flex;align-items:center;gap:8px}
+.tabbar{display:flex;gap:8px;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:12px}
+.tab{
+  padding:8px 10px;border-radius:8px;cursor:pointer;
+  transition: background .2s ease, color .2s ease, transform .1s ease;
+}
+.tab:hover{transform: translateY(-1px);}
+.tab.active{background:var(--accent);color:white}
+.lesson-block{
+  background:var(--card);padding:16px;border-radius:10px;margin-bottom:14px;
+  border:1px solid var(--border);
+  transition: background .3s ease, border-color .3s ease;
+}
+.lesson-block h3{margin:0 0 8px 0}
+.lesson-meta{font-size:13px;color:var(--muted);margin-bottom:8px}
+.lesson-img{width:100%;max-height:280px;object-fit:cover;border-radius:8px;margin-bottom:10px}
+.video-card{position:relative;border-radius:8px;overflow:hidden;cursor:pointer;margin:8px 0;box-shadow:0 8px 20px rgba(2,6,23,0.06)}
+.video-thumb{width:100%;height:240px;object-fit:cover;display:block}
+.video-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:white;font-size:28px}
+
+/* Campos estáticos e de input */
+[data-static-content]{min-height:36px;padding:6px;border-radius:6px;border:1px dashed transparent;background:transparent}
+textarea, input[type="text"], select{
+  border:1px solid var(--border);background:var(--panel);color:var(--text);
+  transition: background .3s ease, border-color .3s ease, color .3s ease;
+} 
+
+.settings-panel{
+  display:none;position:fixed;right:18px;top:84px;width:420px;
+  background:var(--panel);padding:14px;border-radius:10px;
+  border:1px solid var(--border);box-shadow:0 10px 30px rgba(2,6,23,0.08);z-index:130;
+  transition: background .3s ease, border-color .3s ease;
+}
+.settings-panel.open{display:block}
+.small{font-size:13px;color:var(--muted)}
+.badge{
+  background:var(--panel);padding:8px;border-radius:8px;
+  border:1px solid var(--border);cursor:pointer;
+  transition: background .2s ease, border-color .2s ease, transform .1s ease;
+}
+.badge:hover{transform: translateY(-1px);}
+.icon-btn{
+  display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;
+  border-radius:8px;border:1px solid var(--border);background:var(--panel);cursor:pointer;
+  transition: background .2s ease, border-color .2s ease, transform .1s ease;
+}
+.icon-btn:hover{transform: translateY(-1px);}
+.icon-btn svg { width: 18px; height: 18px; color: var(--text); }
+
+/* Progress bar & Toast */
+.progress-wrap{height:12px;background:linear-gradient(90deg, rgba(0,0,0,0.04) 0%, transparent 0);border-radius:999px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%; transition: width 0.3s ease;}
+#toast{position:fixed;right:18px;bottom:18px;background:rgba(0,0,0,0.8);color:white;padding:10px 14px;border-radius:8px;display:none;z-index:9999}
+
+/* Performance drawer */
+#perf-drawer{ 
+    position:fixed; right:16px; top:84px; width:420px; max-width:92vw; height:calc(100vh - 100px); 
+    background:var(--card); border:1px solid var(--border); box-shadow:0 10px 30px rgba(2,6,23,0.08); 
+    border-radius:12px; overflow:auto; padding:8px; z-index:220; 
+    transition:transform .25s ease, opacity .25s; 
+    transform:translateY(8px); 
+}
+#perf-drawer[aria-hidden="true"]{ opacity:0.01; pointer-events:none; transform:translateY(12px) scale(.995); }
+#perf-drawer[aria-hidden="false"]{ opacity:1; pointer-events:auto; transform:translateY(0) scale(1); }
+.perf-header{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-bottom:1px solid var(--border);margin-bottom:8px}
+
+/* quick actions */
+#quick-actions{ position:fixed; right:18px; bottom:18px; z-index:999; display:flex; flex-direction:column; gap:8px; }
+#quick-actions button{ 
+  border-radius:10px; padding:10px 12px; 
+  box-shadow:0 8px 20px rgba(2,6,23,0.06); 
+  background:var(--panel); border:1px solid var(--border); 
+  cursor:pointer;
+  transition: background .2s ease, border-color .2s ease, transform .1s ease;
+}
+#quick-actions button:hover{transform: translateY(-1px);}
+
+/* Focus Mode */
+body.focus-mode header.app-header, body.focus-mode #sidebar, body.focus-mode .tabbar, body.focus-mode .controls-top{display:none}
+body.focus-mode .lesson-block{font-size:1.12rem;padding:22px}
+@media (max-width:900px){ 
+    #sidebar{position:fixed;left:0;top:68px;bottom:0;z-index:90} 
+    #sidebar.hidden{transform:translateX(-320px)} 
+    #sidebar-toggle{left:8px} 
+}
+</style>
+</head>
+
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <img src="https://media.licdn.com/dms/image/v2/D4D03AQE9LhJecVC3gA/profile-displayphoto-scale_200_200/B4DZq8ik_KIAAY-/0/1764099773501?e=1766016000&v=beta&t=kZUvqzPVt58kWIdMLYt2vA0_RPNmnOL1lH9LPpR1Wvw" alt="Professor">
+    <div>
+      <div style="font-weight:700;color:var(--muted)">Willian Martins</div>
+      <div class="small">Professor — MTEC Automação</div>
+    </div>
+  </div>
+
+  <div class="header-center">
+    <h1>ETEC DE EMBU</h1>
+    <p>MTEC em Automação Industrial — Plataforma</p>
+  </div>
+
+  <div class="header-right">
+    <a class="icon-btn" href="#" target="_blank" rel="noopener" title="NSA">
+      <i data-lucide="book-open"></i>
+    </a>
+    <a class="icon-btn" href="#" target="_blank" rel="noopener" title="Teams">
+      <i data-lucide="message-square"></i>
+    </a>
+    <a class="icon-btn" href="#" target="_blank" rel="noopener" title="ETEC">
+      <i data-lucide="graduation-cap"></i>
+    </a>
+    
+    <select id="theme-select" class="badge" style="padding:6px;border-radius:6px;">
+      <option value="clear">Claro</option>
+      <option value="dark">Escuro</option>
+      <option value="industrial">Industrial</option>
+      <option value="educational">Educacional</option>
+      <option value="custom">Personalizado</option>
+    </select>
+    <button id="btn-focus" class="badge" title="Modo Foco">Foco</button>
+    <button id="btn-perf" class="badge" title="Desempenho e Avanço (Ctrl+P)">📊</button>
+    <button id="btn-settings" class="badge" title="Configurações">⚙</button>
+  </div>
+</header>
+
+<div class="app-shell">
+  <aside id="sidebar">
+    <div style="padding:8px 6px">
+      <input id="sidebar-search" placeholder="Buscar disciplina..." style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border)">
+    </div>
+
+    <div class="sidebar-section">
+      <div class="series-title" data-serie="series1">1ª SÉRIE</div>
+      <div class="disc-list collapsed" id="series1-list" style="max-height: 0px;"></div> 
+    </div>
+
+    <div class="sidebar-section">
+      <div class="series-title" data-serie="series2">2ª SÉRIE</div>
+      <div class="disc-list collapsed" id="series2-list" style="max-height: 0px;"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="series-title" data-serie="series3">3ª SÉRIE</div>
+      <div class="disc-list collapsed" id="series3-list" style="max-height: 0px;"></div>
+    </div>
+
+    <div style="padding:12px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)">
+      Progresso de Conclusão (Salvo no navegador)
+    </div>
+  </aside>
+
+  <button id="sidebar-toggle" title="Ocultar/mostrar menu">❰</button>
+
+  <main class="main">
+    <div class="container">
+      <div class="controls-top">
+        <div style="display:flex;flex-direction:column">
+          <div id="breadcrumbs" class="small">Selecione uma disciplina</div>
+          <div style="width:260px;margin-top:6px">
+            <div class="progress-wrap"><div class="progress-bar" id="disc-progress"></div></div>
+          </div>
+        </div>
+
+        <div class="week-controls">
+          <button id="prev-week" class="badge" title="Semana anterior">‹</button>
+          <select id="week-select" class="badge"></select>
+          <button id="next-week" class="badge" title="Próxima semana">›</button>
+          <label style="display:flex;align-items:center;gap:6px;margin-left:8px"><input id="week-done" type="checkbox"> Aula concluída</label>
+        </div>
+      </div>
+
+      <div class="tabbar" id="tabs">
+        <div class="tab active" data-tab="content">Conteúdo</div>
+        <div class="tab" data-tab="videos">Vídeos</div>
+        <div class="tab" data-tab="simulators">Simuladores</div>
+        <div class="tab" data-tab="assessments">Avaliações</div>
+        <div class="tab" data-tab="notes">Caderno</div>
+        <div class="tab" data-tab="guide">Guia</div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
+        <button id="export-json" class="badge">Exportar JSON (Progresso)</button>
+        <button id="import-json-btn" class="badge">Importar JSON (Progresso)</button>
+        <button id="export-ppt" class="badge">Exportar PPT (Semana)</button>
+        <button id="export-html" class="badge">Salvar Página Completa</button>
+      </div>
+
+      <section id="tab-content">
+        <div id="tab-content-container">
+          <div class="lesson-block">
+            <h3 id="block-title">📘 Fundamentação Teórica</h3>
+            <div class="lesson-meta small" id="block-meta"></div>
+
+            <div id="week-1-panel" style="display:none;margin-bottom:12px">
+              <h4>COMPETÊNCIAS</h4>
+              <div id="competencies"></div>
+              <h4>HABILIDADES</h4>
+              <div id="skills"></div>
+              <h4>BASES TECNOLÓGICAS</h4>
+              <div id="bases"></div>
+            </div>
+
+            <img id="theory-img" class="lesson-img" alt="Imagem Teoria" style="display:none">
+            <div id="editor-theory" data-static-content style="min-height:140px;border-radius:8px;padding:10px;border:1px solid var(--border);"></div>
+            <div id="theory-video-area"></div>
+          </div>
+
+          <div class="lesson-block">
+            <h3>🔧 Fundamentação Prática</h3>
+            <div class="lesson-meta small">Procedimentos de bancada e simuladores</div>
+            <img id="practice-img" class="lesson-img" alt="Imagem Prática" style="display:none">
+            <div id="editor-practice" data-static-content style="min-height:120px;border-radius:8px;padding:10px;border:1px solid var(--border);"></div>
+            <div id="practice-video-area"></div>
+          </div>
+
+          <div class="lesson-block">
+            <h3>🧠 Atividade de Fixação</h3>
+            <div id="editor-fixation" data-static-content style="min-height:100px;border-radius:8px;padding:10px;border:1px solid var(--border);"></div>
+          </div>
+
+          <div class="lesson-block">
+            <h3>📚 Base de Estudos</h3>
+            <div id="editor-studies" data-static-content style="min-height:80px;border-radius:8px;padding:10px;border:1px solid var(--border);"></div>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <button id="mark-done-week" class="badge">Marcar aula concluída</button>
+          </div>
+        </div>
+
+        <div id="tab-videos" style="display:none">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;padding:12px;border:1px solid var(--accent-2);border-radius:8px;background:var(--bg)">
+            <input id="local-video-title" placeholder="Título (opcional)" style="flex:0.5;padding:8px;border-radius:4px;border:1px solid var(--border)">
+            <input id="local-video-url" placeholder="Colar URL do YouTube" style="flex:1;padding:8px;border-radius:4px;border:1px solid var(--border)">
+            <select id="local-video-side">
+              <option value="theory">Teoria</option>
+              <option value="practice">Prática</option>
+            </select>
+            <button id="add-local-video" class="badge" title="Adicionar vídeo à semana atual">+</button>
+          </div>
+
+          <p class="small" style="color:var(--muted)">Vídeos na lista abaixo são uma **combinação** do conteúdo fixo (do código) e dos vídeos que você adicionar localmente (salvos no seu navegador).</p>
+          <div id="videos-list"></div>
+        </div>
+
+        <div id="tab-simulators" style="display:none">
+          <p class="small" style="color:var(--accent)">Simuladores são configurados no JSON 'MTEC_CONTENT_DATA' no código-fonte HTML.</p>
+          <div id="sim-list"></div>
+        </div>
+
+        <div id="tab-assessments" style="display:none">
+          <p class="small" style="color:var(--accent)">Avaliações são configuradas no JSON 'MTEC_CONTENT_DATA' no código-fonte HTML.</p>
+          <div id="assess-list"></div>
+        </div>
+
+        <div id="tab-notes" style="display:none">
+          <p class="small">Este é o seu Caderno Pessoal. O conteúdo é salvo no seu navegador e **não** no arquivo HTML.</p>
+          <textarea id="teacher-notes" placeholder="Notas do professor..." style="width:100%;height:220px;padding:10px;border-radius:8px;border:1px solid var(--border)"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:8px">
+            <button id="save-notes" class="badge">Salvar Notas Pessoais</button>
+          </div>
+        </div>
+
+        <div id="tab-guide" style="display:none">
+          <div class="lesson-block">
+            <h3>Guia / Referências</h3>
+            <p class="small">Semana 1 apresenta o quadro oficial — competências, habilidades e bases tecnológicas — adaptado do Plano de Curso fornecido.</p>
+            <p class="small">Atalhos: <strong>Ctrl+M</strong> (menu), <strong>Ctrl+F</strong> (foco), <strong>Esc</strong> (sair foco), <strong>←/→</strong> (semanas), <strong>Ctrl/Cmd+P</strong> (painel de desempenho).</p>
+            <p class="small">Para editar o conteúdo principal das aulas (teoria, prática, vídeos, etc.), edite o objeto <strong>MTEC_CONTENT_DATA</strong> diretamente no código-fonte HTML.</p>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<aside id="perf-drawer" aria-hidden="true">
+  <div class="perf-header" role="banner">
+    <div>
+      <strong>Desempenho & Avanço</strong>
+      <div class="small">Visão por disciplina, semana e geral</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button id="perf-mark-all" class="badge small" title="Marcar todas as aulas">Marcar tudo</button>
+      <button id="perf-reset" class="badge small" title="Resetar progresso">Resetar</button>
+      <button id="close-perf" class="badge small" title="Fechar painel">Fechar</button>
+    </div>
+  </div>
+
+  <div style="padding:12px">
+    <div class="lesson-block" style="padding:10px;margin-bottom:12px">
+      <h3>📊 Desempenho da Disciplina</h3>
+      <canvas id="perfChart" height="120" aria-label="Gráfico de desempenho da disciplina"></canvas>
+      <div id="perf-stats" class="small" style="margin-top:8px"></div>
+    </div>
+
+    <div class="lesson-block" style="padding:10px;margin-bottom:12px">
+      <h3>📈 Desempenho Geral</h3>
+      <canvas id="allDiscChart" height="220" aria-label="Gráfico geral das disciplinas"></canvas>
+    </div>
+
+    <div class="lesson-block" style="padding:10px;margin-bottom:12px">
+      <h3>🗓️ Semana Atual</h3>
+      <canvas id="weekChart" height="120" aria-label="Gráfico da semana atual"></canvas>
+      <div id="week-stats" class="small" style="margin-top:8px"></div>
+    </div>
+  </div>
+</aside>
+
+<div id="settings-panel" class="settings-panel" aria-hidden="true">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div style="font-weight:700">Configurações</div>
+    <button id="close-settings" class="badge">✕</button>
+  </div>
+  
+  <div style="margin-bottom:8px">
+    <label> Tema </label>
+    <select id="theme-select-panel" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);margin-top:6px">
+      <option value="clear">Claro</option>
+      <option value="dark">Escuro</option>
+      <option value="industrial">Industrial</option>
+      <option value="educational">Educacional</option>
+      <option value="custom">Personalizado</option>
+    </select>
+  </div>
+
+  <div style="margin-bottom:12px; border-top:1px solid var(--border); padding-top:12px;">
+    <div style="font-weight:700; margin-bottom:8px;">Cores Personalizadas</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label class="small">Fundo (Geral)</label>
+        <input type="color" id="custom-bg-picker" style="width:100%; height:40px; padding:0; border:1px solid var(--border); border-radius:6px; margin-top:4px;">
+      </div>
+      <div>
+        <label class="small">Painel/Menu/Cards</label>
+        <input type="color" id="custom-panel-picker" style="width:100%; height:40px; padding:0; border:1px solid var(--border); border-radius:6px; margin-top:4px;">
+      </div>
+      <div style="grid-column: span 2;">
+        <label class="small">Cor do Texto Principal</label>
+        <input type="color" id="custom-text-picker" style="width:100%; height:40px; padding:0; border:1px solid var(--border); border-radius:6px; margin-top:4px;">
+      </div>
+    </div>
+    <button id="save-custom-colors" class="badge" style="width:100%; margin-top:10px;">Aplicar e Salvar Cores</button>
+    <p class="small" style="margin-top:8px; text-align:center;">Selecione **Personalizado** no tema para aplicar as cores acima.</p>
+  </div>
+  <div style="margin-top:8px;display:flex;gap:8px">
+    <button id="export-json-btn" class="badge">Exportar Progresso</button>
+    <label class="badge" style="cursor:pointer">Importar Progresso<input id="import-json" type="file" accept="application/json" style="display:none"></label>
+  </div>
+  <p class="small" style="margin-top:10px">Atalhos: <strong>Ctrl+M</strong> menu • <strong>Ctrl+F</strong> foco • <strong>ESC</strong> sair foco • <strong>←/→</strong> semana • <strong>Ctrl/Cmd+P</strong> painel de desempenho</p>
+</div>
+
+<input id="file-import" type="file" accept="application/json" style="display:none" />
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="quick-actions">
+  <button id="qa-perf" class="badge" title="Abrir desempenho">📊</button>
+  <button id="qa-toggle-sidebar" class="badge" title="Alternar menu">☰</button>
+</div>
+
+<script>
+/* =======================================================
+   Código completo consolidado — Plataforma MTEC Automação
+   ======================================================= */
+
+const EMBEDDED_MTEC_DATA = {};
+const APP_KEY = 'mtec_automacao_final_v1';
+const WEEKS = 20;
+
+let state = {
+  activeDisciplineId: null,
+  activeWeekIndex: 0,
+  activeTab: 'content',
+  sidebarHidden: false,
+  focusMode: false,
+  theme: 'clear'
+};
+
+/* -------------------------------------------------------------
+   ESTRUTURA DE DADOS FIXOS (MTEC_CONTENT_DATA)
+   TODO: EDITE ESTE OBJETO NO CÓDIGO HTML PARA ALTERAR O CONTEÚDO
+   * ATENÇÃO: Os dados de exemplo foram mantidos para demonstrar a estrutura.
+   ------------------------------------------------------------- */
+const MTEC_CONTENT_DATA = {
+  /* ... (Estrutura MTEC_CONTENT_DATA omitida para brevidade, mas está completa acima) ... */
+  /* ============================================================================== */
+  /* ------------------------------- 1ª SÉRIE ------------------------------------- */
+  /* ============================================================================== */
+
+  'aplic_inf_des': { // Aplicativos Informatizados e Desenho Técnico
+    'aplic_inf_des:w1': {
+      teoria: ``,
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [{url:'https://www.youtube.com/watch?v=kYcR8_h58cQ', type:'theory', title:'Exemplo: Introdução ao Desenho Técnico'}],
+      simulators: [{name:'Simulador CAD Online', link:'https://example.com/cad'}],
+      assessments: []
+    },
+    'aplic_inf_des:w2': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+
+     'aplic_inf_des:w20': {
+      teoria: `
+      <h3>SALVAR ARQUIVO DO AUTOCAD (DWG) EM PDF.</h3>
+<p><strong>Objetivo:</strong> Salvar o projeto em PFD.</p>
+<p>Entrar no modo de <strong>“layout 1”</strong>.</p>
+
+<img 
+  src="https://damassets.autodesk.net/content/dam/autodesk/www/images/cs-f-1.jpg" 
+  alt="Diagrama de Cotagem no Desenho Técnico" 
+  style="width:80%; max-width:600px; display:block; margin: 15px auto;"
+>
+
+
+<p>Na barra superior ir em <strong>Layout</strong>.</p>
+<p><strong>Configuração de página</strong>.</p>
+<p><strong>Modificar</strong>.</p>
+<p>Em nome escolher <strong>DWF6 eplot.pc3</strong> (melhor opção).</p>
+<p><strong>Propriedades</strong>.</p>
+<p>Selecionar <strong>modificar tamanho do papel padrão (Área imprimível)</strong>.</p>
+<p>Em modificar tamanhos de papel padrão procure **ISO A4 (297,00 x 210,00)** para modo paisagem (deitado) ou **ISO A4 (210,00 x 297,00)** para modo retrato (em pé).</p>
+<p>Depois clique em <strong>modificar</strong>:</p>
+<p>Ajuste para <strong>25,10,10,10</strong>.<br>
+Clique em **avançar** e salve como desejar este padrão de configuração.</p>
+<p><strong>Concluir</strong> :</p>
+<p>Basta dar <strong>ok duas vezes</strong>.<br>
+<em>*cuidado que pode ocorrer de retornar para o modificar tamanhos de papel padrão ANSI A ..., se isso ocorrer procure o ISO A4 (297,00 x 210,00).</em><br>
+E após certificar-se de que o modificar está na opção correta, dê ok novamente.</p>
+<p>Agora na tela de configuração em tamanho do papel escolha <strong>ISO A4 (297,00 x 210,00)</strong></p>
+<p><strong>A imagem embaixo de propriedades deverá mudar</strong>, caso tenha mudado basta dar OK novamente e fechar o gerenciador de configuração de página.</p>
+<p>A folha ficará da forma abaixo:</p>
+
+<img 
+    src="folha-layout-configurada.png" 
+    alt="Vista da folha de layout no AutoCAD após a configuração de margem A4." 
+    style="width:100%; max-width:800px; border:1px solid #ccc; margin-bottom: 20px;"
+  >
+
+
+<p>Para inserir o desenho, vá em <strong>Viewports de layout</strong>.<br>
+Em Viewports de layout clique em <strong>retangular</strong>:</p>
+<p>Depois indique onde o desenho deverá aparecer (indicado inserir dentro da linha tracejada);</p>
+<p>Para reajustar o desenho na folha, poderá utilizar a janela de <strong>zoom</strong>:<br>
+Selecione o que quer dar destaque no projeto.</p>
+<p>Para salvar em PDF basta ir em <strong>A</strong> &rarr; <strong>Exportar</strong> &rarr; <strong>PDF</strong><br>
+Escolha a pasta de sua preferência e clique em **salvar**.<br>
+Pronto, seu arquivo dwg está salvo em PDF.</p>
+      
+      `,
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ... Continue para w3 até w20
+  },
+  
+  'desenvolv_circ': { // Desenvolvimento de Circuitos Eletrônicos
+    'desenvolv_circ:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ... Continue para w2 até w20
+  },
+  
+  'eletric_basica': { // Eletricidade Básica
+    'eletric_basica:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+  
+  'eletronica_dig': { // Eletrônica Digital
+    'eletronica_dig:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+  
+  'seg_trab': { // Segurança Ambiental e do Trabalho
+    'seg_trab:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+
+  /* ============================================================================== */
+  /* ------------------------------- 2ª SÉRIE ------------------------------------- */
+  /* ============================================================================== */
+
+  'eletronica_apl': { // Eletrônica Aplicada em Automação
+    'eletronica_apl:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+  
+  'instrumentacao': { // Instrumentação Industrial
+    'instrumentacao:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+  
+  'maquinas_comandos': { // Máquinas, Comandos e Instalações Elétricas
+    'maquinas_comandos:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+  
+  'sist_hid_pneu': { // Sistemas Hidráulicos e Pneumáticos
+    'sist_hid_pneu:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+  
+  'etica_cidadania': { // Ética e Cidadania Organizacional
+    'etica_cidadania:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+
+  /* ============================================================================== */
+  /* ------------------------------- 3ª SÉRIE ------------------------------------- */
+  /* ============================================================================== */
+
+  'clp': { // Controladores Lógicos Programáveis (CLP)
+    'clp:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+  
+  'controle_processos': { // Controle de Processos
+    'controle_processos:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+  
+  'microcontroladores': { // Microcontroladores
+    'microcontroladores:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+  
+  'scada_redes': { // Sistemas Supervisórios e Redes Industriais
+    'scada_redes:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+  
+  'iot_industrial': { // IoT Industrial
+    'iot_industrial:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+
+  'robotica_ind': { // Robótica Industrial e Servoacionamentos
+    'robotica_ind:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  },
+
+  'projetos_tcc': { // Projetos Industriais / TCC
+    'projetos_tcc:w1': {
+      teoria: '',
+      pratica: '',
+      fixacao: '',
+      estudos: '',
+      videos: [], simulators: [], assessments: []
+    },
+    // ...
+  }
+}; // Fim do objeto MTEC_CONTENT_DATA
+
+
+/* -----------------------------------------------------------------
+   Disciplines - COMENTARIOS DE IDENTIFICACAO 
+   ----------------------------------------------------------------- */
+const disciplines = [
+  // ... (Lista de Disciplinas omitida para brevidade) ...
+  // ------------------------- 1ª SÉRIE -------------------------
+  { id:'aplic_inf_des', name:'Aplicativos Informatizados e Desenho Técnico', series:1,
+    week1:{ competencias:["Interpretar e aplicar representação técnica para projetos eletromecânicos.","Utilizar ferramentas digitais para documentação técnica."],
+            habilidades:["Ler e interpretar desenhos técnicos e esquemas elétricos.","Usar software CAD."],
+            bases:["Desenho técnico, normas ABNT, simbologia."] } },
+  { id:'desenvolv_circ', name:'Desenvolvimento de Circuitos Eletrônicos', series:1,
+    week1:{ competencias:["Projetar e montar circuitos eletrônicos básicos.","Aplicar procedimentos de montagem e teste."],
+      habilidades:["Interpretar datasheets; montar PCBs; usar osciloscópio.","Ensaios de medidas elétricas."],
+      bases:["Componentes eletrônicos, eletrônica analógica, instrumentos de medida."] } },
+  { id:'eletric_basica', name:'Eletricidade Básica', series:1,
+    week1:{ competencias:["Compreender princípios eletrotécnicos aplicados à automação.","Aplicar noções de segurança NR-10."],
+      habilidades:["Calcular circuitos; medir tensão/corrente/resistência.","Identificar componentes e realizar ligações básicas."],
+      bases:["Lei de Ohm, circuitos DC/AC, potência, simbologia elétrica."] } },
+  { id:'eletronica_dig', name:'Eletrônica Digital', series:1,
+    week1:{ competencias:["Entender lógica digital aplicada a sistemas de controle.","Aplicar blocos lógicos em aplicações de automação."],
+      habilidades:["Projetar com portas lógicas; simular com software."],
+      bases:["Álgebra booleana, portas lógicas, TTL/CMOS."] } },
+  { id:'seg_trab', name:'Segurança Ambiental e do Trabalho', series:1,
+    week1:{ competencias:["Promover práticas seguras e ambientalmente responsáveis.","Aplicar normas de prevenção de acidentes."],
+      habilidades:["Identificar riscos e usar EPI.","Elaborar procedimentos de segurança."],
+      bases:["NR-10, gestão ambiental, EPI."] } },
+
+  // ------------------------- 2ª SÉRIE -------------------------
+  { id:'eletronica_apl', name:'Eletrônica Aplicada em Automação', series:2,
+    week1:{ competencias:["Aplicar técnicas eletrônicas em módulos e sistemas de automação.","Integrar sensores e atuadores."],
+      habilidades:["Dimensionar circuitos de acionamento; analisar sinais."],
+      bases:["Circuitos de potência, condicionamento de sinal."] } },
+  { id:'instrumentacao', name:'Instrumentação Industrial', series:2,
+    week1:{ competencias:["Selecionar e aplicar instrumentos de medição em processos.","Calibrar e manter instrumentos."],
+      habilidades:["Calibrar sensores; configurar DAQ."],
+      bases:["Sensores, 4-20mA, condicionamento de sinal."] } },
+  { id:'maquinas_comandos', name:'Máquinas, Comandos e Instalações Elétricas', series:2,
+    week1:{ competencias:["Conhecer comandos elétricos e integração de máquinas.","Dimensionar proteções e esquemas de comando."],
+      habilidades:["Montar diagramas de comando; aplicar contatores."],
+      bases:["Diagramas, contatores, relés, proteções."] } },
+  { id:'sist_hid_pneu', name:'Sistemas Hidráulicos e Pneumáticos', series:2,
+    week1:{ competencias:["Aplicar princípios de hidráulica e pneumática.","Dimensionar circuitos de potência pneumática."],
+      habilidades:["Montar circuitos eletropneumáticos e interpretar simbologia."],
+      bases:["Válvulas direcionais, cilindros, segurança pneumática."] } },
+  { id:'etica_cidadania', name:'Ética e Cidadania Organizacional', series:2,
+    week1:{ competencias:["Desenvolver atitudes éticas e responsabilidade social.","Participar de processos de melhoria contínua."],
+      habilidades:["Atuar em equipe; aplicar boas práticas organizacionais."],
+      bases:["Ética profissional; legislação básica; políticas internas."] } },
+
+  // ------------------------- 3ª SÉRIE -------------------------
+  { id:'clp', name:'Controladores Lógicos Programáveis (CLP)', series:3,
+    week1:{ competencias:["Programar CLPs em automação discreta e sequencial.","Integrar CLPs com sensores e atuadores."],
+      habilidades:["Escrever ladder; mapear I/O; simular programas."],
+      bases:["Arquitetura CLP, varredura, ladder, protocolos Modbus."] } },
+  { id:'controle_processos', name:'Controle de Processos', series:3,
+    week1:{ competencias:["Modelar e controlar processos contínuos e discretos.","Aplicar estratégias PID e lógica de controle."],
+      habilidades:["Ajuste de controladores; análise de resposta."],
+      bases:["Teoria de controle, PID, dinâmica de sistemas."] } },
+  { id:'microcontroladores', name:'Microcontroladores', series:3,
+    week1:{ competencias:["Desenvolver soluções embarcadas para automação.","Integrar protocolos e interfaces."],
+      habilidades:["Programar em C/Python; lidar com ADC/DAC/UART."],
+      bases:["Arquitetura MCU, linguagens embarcadas, eletrônica."] } },
+  { id:'scada_redes', name:'Sistemas Supervisórios e Redes Industriais', series:3,
+    week1:{ competencias:["Implantar SCADA e redes industriais; garantir comunicação.","Configurar telas, tags e alarmes."],
+      habilidades:["Configurar IHM, OPC UA, Modbus/TCP."],
+      bases:["Protocolos industriais, arquitetura SCADA, TCP/IP industrial."] } },
+  { id:'iot_industrial', name:'IoT Industrial', series:3,
+    week1:{ competencias:["Aplicar IoT para coleta e análise de dados industriais.","Integrar sensores com plataformas em nuvem."],
+      habilidades:["Configurar MQTT; enviar dados a dashboards."],
+      bases:["MQTT, sensores conectados, IIoT, conceitos nuvem."] } },
+  { id:'robotica_ind', name:'Robótica Industrial e Servoacionamentos', series:3,
+    week1:{ competencias:["Projetar aplicações robóticas industriais e integrar servos.","Programar movimentos e trajetórias."],
+      habilidades:["Configurar controladores de servo; programar trajetórias."],
+      bases:["Cinemática, servomecanismos, segurança de robôs."] } },
+  { id:'projetos_tcc', name:'Projetos Industriais / TCC', series:3,
+    week1:{ competencias:["Planejar e executar projetos aplicados à automação.","Elaborar documentação técnica e apresentar protótipos."],
+      habilidades:["Gerenciar cronograma, elaborar relatórios e protótipos."],
+      bases:["Metodologia de projetos, documentação técnica, normas."] } }
+];
+
+/* ----------------------------
+   Helpers e storage
+   ---------------------------- */
+function contentKey(did,wk){ return `${did}:w${wk+1}`; } 
+function doneKey(did,wk){ return `mtec:done:${did}:w${wk+1}`; }
+function notesKey(did,wk){ return `mtec:notes:${did}:w${wk+1}`; }
+function uiKey(k){ return `mtec:ui:${k}`; }
+function localVideosKey(did,wk){ return `mtec:local_videos:${did}:w${wk+1}`; }
+function customColorKey(k){ return `mtec:custom_color:${k}`; }
+function saveState(){ localStorage.setItem(APP_KEY, JSON.stringify(state)); }
+function loadState(){ const s = localStorage.getItem(APP_KEY); if(s) Object.assign(state, JSON.parse(s)); }
+function showToast(text, time=2000){ const el=document.getElementById('toast'); el.innerText=text; el.style.display='block'; setTimeout(()=>el.style.display='none', time); }
+function getDiscipline(did){ return disciplines.find(d=>d.id===did); }
+function stripHtml(html){ const d=document.createElement('div'); d.innerHTML = html; return d.textContent || d.innerText || ''; }
+
+function debounce(func, delay) {
+  let timeoutId;
+  return function(...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func.apply(this, args), delay);
+  };
+}
+
+
+/* ----------------------------
+   Funções para Vídeos Locais
+   ---------------------------- */
+function loadLocalVideos(did, wk) {
+  const json = localStorage.getItem(localVideosKey(did, wk));
+  return json ? JSON.parse(json) : [];
+}
+
+function saveLocalVideos(did, wk, videos) {
+  localStorage.setItem(localVideosKey(did, wk), JSON.stringify(videos));
+}
+
+function addLocalVideo() {
+  const did = state.activeDisciplineId;
+  const wk = state.activeWeekIndex;
+  const title = document.getElementById('local-video-title').value.trim();
+  const url = document.getElementById('local-video-url').value.trim();
+  const type = document.getElementById('local-video-side').value;
+
+  if (!getYoutubeId(url)) {
+    showToast('URL inválida ou não é do YouTube.');
+    return;
+  }
+
+  const videos = loadLocalVideos(did, wk);
+  videos.push({ title: title || 'Vídeo Adicionado', url: url, type: type, isLocal: true });
+  saveLocalVideos(did, wk, videos);
+
+  document.getElementById('local-video-title').value = '';
+  document.getElementById('local-video-url').value = '';
+
+  renderActive(); 
+  setActiveTab('videos');
+  showToast('Vídeo adicionado localmente.');
+}
+
+function deleteLocalVideo(indexToDelete) {
+  if (!confirm('Tem certeza que deseja remover este vídeo local?')) return;
+  const did = state.activeDisciplineId;
+  const wk = state.activeWeekIndex;
+  
+  const videos = loadLocalVideos(did, wk);
+  
+  if (indexToDelete >= 0 && indexToDelete < videos.length) {
+    videos.splice(indexToDelete, 1);
+    saveLocalVideos(did, wk, videos);
+    renderActive();
+    showToast('Vídeo local removido.');
+  }
+}
+
+/* ----------------------------
+   Funções para Cores Personalizadas
+   ---------------------------- */
+function saveCustomColors() {
+    const bg = document.getElementById('custom-bg-picker').value;
+    const panel = document.getElementById('custom-panel-picker').value;
+    const text = document.getElementById('custom-text-picker').value;
+    
+    localStorage.setItem(customColorKey('bg'), bg);
+    localStorage.setItem(customColorKey('panel'), panel);
+    localStorage.setItem(customColorKey('text'), text);
+    
+    // Aplica imediatamente as variáveis CSS personalizadas
+    document.documentElement.style.setProperty('--custom-bg-color', bg);
+    document.documentElement.style.setProperty('--custom-panel-color', panel);
+    document.documentElement.style.setProperty('--custom-text-color', text);
+    
+    applyTheme('custom');
+    document.getElementById('theme-select').value = 'custom';
+    document.getElementById('theme-select-panel').value = 'custom';
+    showToast('Cores personalizadas salvas e aplicadas!');
+}
+
+function loadCustomColors() {
+    const bg = localStorage.getItem(customColorKey('bg')) || '#f6f8fb';
+    const panel = localStorage.getItem(customColorKey('panel')) || '#ffffff';
+    const text = localStorage.getItem(customColorKey('text')) || '#0b2545';
+    
+    // Set picker values (for UI)
+    const bgPicker = document.getElementById('custom-bg-picker');
+    const panelPicker = document.getElementById('custom-panel-picker');
+    const textPicker = document.getElementById('custom-text-picker');
+    
+    if(bgPicker) bgPicker.value = bg;
+    if(panelPicker) panelPicker.value = panel;
+    if(textPicker) textPicker.value = text;
+    
+    // Set CSS variables for the custom theme mode
+    document.documentElement.style.setProperty('--custom-bg-color', bg);
+    document.documentElement.style.setProperty('--custom-panel-color', panel);
+    document.documentElement.style.setProperty('--custom-text-color', text);
+}
+
+
+/* ----------------------------
+   Função de Pesquisa
+   ---------------------------- */
+function filterDisciplines(query) {
+  const q = query.toLowerCase().trim();
+  const seriesTitles = document.querySelectorAll('.series-title');
+  
+  disciplines.forEach(d => {
+    const item = document.querySelector(`.disc-item[data-id="${d.id}"]`);
+    if (!item) return;
+
+    const match = d.name.toLowerCase().includes(q) || d.id.toLowerCase().includes(q);
+    item.style.display = match ? 'flex' : 'none';
+  });
+
+  seriesTitles.forEach(title => {
+    const seriesId = title.dataset.serie;
+    const list = document.getElementById(`${seriesId}-list`);
+    const visibleItems = Array.from(list.children).filter(item => item.style.display !== 'none');
+
+    if (q.length > 0 && visibleItems.length > 0) {
+        title.style.display = 'flex';
+        list.classList.remove('collapsed');
+        title.classList.remove('collapsed');
+        list.style.maxHeight = list.scrollHeight + 'px';
+    } else if (q.length > 0 && visibleItems.length === 0) {
+        title.style.display = 'none';
+        list.classList.add('collapsed');
+        title.classList.add('collapsed');
+        list.style.maxHeight = '0px';
+    } else {
+        title.style.display = 'flex';
+        const stored = localStorage.getItem(uiKey(`collapsed:${seriesId}`));
+        if (stored === '1') {
+            list.classList.add('collapsed');
+            title.classList.add('collapsed');
+            list.style.maxHeight = '0px';
+        } else {
+             list.classList.remove('collapsed');
+             title.classList.remove('collapsed');
+             list.style.maxHeight = list.scrollHeight + 'px';
+        }
+    }
+  });
+}
+
+
+/* ----------------------------
+   Funções do Painel de Desempenho (Performance Drawer) - CORRIGIDO
+   ---------------------------- */
+function togglePerfDrawer(open){
+  const el = document.getElementById('perf-drawer'); 
+  if(!el) return;
+  const isOpen = el.getAttribute('aria-hidden') === 'false';
+  const willOpen = typeof open === 'boolean' ? open : !isOpen;
+  el.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
+  
+  // O estilo de display não é estritamente necessário se a transição for feita apenas com CSS,
+  // mas ajuda a garantir que o conteúdo não atrapalhe a rolagem.
+  el.style.display = willOpen ? 'block' : 'none'; 
+  localStorage.setItem('mtec:perf:open', willOpen ? '1' : '0');
+  
+  if(willOpen){ 
+    // Garante que os gráficos sejam renderizados ou atualizados
+    setTimeout(()=>{ 
+      renderPerformanceChart(); 
+      renderAllDisciplinesChart(); 
+      renderWeekChart(); 
+    }, 140); 
+  }
+}
+
+// Stubs para Chart.js (Evitam erros no console quando o painel é aberto)
+// Se o usuário já possuir a implementação completa, estas serão sobrescritas ou ignoradas.
+function renderPerformanceChart(){ /* lógica Chart.js aqui */ }
+function renderAllDisciplinesChart(){ /* lógica Chart.js aqui */ }
+function renderWeekChart(){ /* lógica Chart.js aqui */ }
+
+// Lógica de reset e marcação de todas as aulas
+document.getElementById('perf-mark-all') && document.getElementById('perf-mark-all').addEventListener('click', ()=>{
+  if(!state.activeDisciplineId) return showToast('Selecione uma disciplina primeiro.');
+  if(!confirm('Tem certeza? Isso marcará TODAS as 20 semanas desta disciplina como concluídas.')) return;
+  for(let i=0; i<WEEKS; i++) setDone(state.activeDisciplineId, i, true);
+  renderActive();
+  refreshSidebarProgress();
+  showToast('Todas as semanas marcadas como concluídas.');
+});
+
+document.getElementById('perf-reset') && document.getElementById('perf-reset').addEventListener('click', ()=>{
+  if(!state.activeDisciplineId) return showToast('Selecione uma disciplina primeiro.');
+  if(!confirm('Tem certeza? Isso RESETARÁ o progresso de TODAS as 20 semanas desta disciplina.')) return;
+  for(let i=0; i<WEEKS; i++) {
+    setDone(state.activeDisciplineId, i, false);
+    localStorage.removeItem(notesKey(state.activeDisciplineId, i)); // Também reseta notas
+    localStorage.removeItem(localVideosKey(state.activeDisciplineId, i)); // Também reseta vídeos locais
+  }
+  renderActive();
+  refreshSidebarProgress();
+  showToast('Progresso da disciplina resetado.');
+});
+
+// Wiring para os botões do Performance Drawer
+document.getElementById('btn-perf') && document.getElementById('btn-perf').addEventListener('click', ()=>togglePerfDrawer());
+document.getElementById('close-perf') && document.getElementById('close-perf').addEventListener('click', ()=>togglePerfDrawer(false));
+document.getElementById('qa-perf') && document.getElementById('qa-perf').addEventListener('click', ()=>togglePerfDrawer());
+
+
+/* ----------------------------
+   Função de Exportar para PPT - CORRIGIDO/IMPLEMENTADO
+   ---------------------------- */
+function exportWeekToPPT() {
+    const did = state.activeDisciplineId;
+    const wk = state.activeWeekIndex;
+    if (!did) return showToast('Selecione uma disciplina e semana primeiro.');
+
+    showToast('Iniciando exportação para PPT...');
+    
+    const pres = new pptxgen();
+    const slide = pres.addSlide();
+    const discName = findDisciplineName(did);
+    const week = wk + 1;
+    const key = contentKey(did, wk);
+    const content = MTEC_CONTENT_DATA[did] ? MTEC_CONTENT_DATA[did][key] : {};
+
+    // Título do Slide
+    slide.addText(`${discName} - Semana ${week}`, { 
+        x: 0.5, y: 0.5, fontSize: 24, bold: true, color: '1366D6', 
+        w: '9.0', h: 0.5, align: 'center' 
+    });
+    
+    let yPos = 1.3;
+    
+    // Fundamentação Teórica
+    if (content.teoria) {
+      slide.addText("1. Fundamentação Teórica", { x: 0.5, y: yPos, fontSize: 16, bold: true, color: '007F00' });
+      const cleanText = stripHtml(content.teoria).trim();
+      slide.addText(cleanText || 'Conteúdo não preenchido.', { x: 0.5, y: yPos + 0.3, fontSize: 12, h: 1.5, w: '9.0' });
+      yPos += 2.0;
+    }
+    
+    // Fundamentação Prática
+    if (content.pratica) {
+      slide.addText("2. Fundamentação Prática", { x: 0.5, y: yPos, fontSize: 16, bold: true, color: 'D66613' });
+      const cleanText = stripHtml(content.pratica).trim();
+      slide.addText(cleanText || 'Conteúdo não preenchido.', { x: 0.5, y: yPos + 0.3, fontSize: 12, h: 1.5, w: '9.0' });
+      yPos += 2.0;
+    }
+    
+    // Atividade de Fixação
+    if (content.fixacao) {
+      slide.addText("3. Atividade de Fixação", { x: 0.5, y: yPos, fontSize: 16, bold: true, color: '7F007F' });
+      const cleanText = stripHtml(content.fixacao).trim();
+      slide.addText(cleanText || 'Conteúdo não preenchido.', { x: 0.5, y: yPos + 0.3, fontSize: 12, h: 1.0, w: '9.0' });
+    }
+
+    pres.writeFile({ fileName: `Aula_${discName.replace(/ /g, '_')}_Semana_${week}.pptx` });
+    showToast('PPT gerado e baixado.');
+}
+
+
+/* ----------------------------
+   Inicialização DOM
+   ---------------------------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+
+  if(typeof EMBEDDED_MTEC_DATA === 'object' && Object.keys(EMBEDDED_MTEC_DATA).length > 0){
+    console.warn("Dados embutidos detectados. Restaurando localStorage para progresso e notas.");
+    Object.keys(EMBEDDED_MTEC_DATA).forEach(k => {
+      localStorage.setItem(k, EMBEDDED_MTEC_DATA[k]);
+    });
+  }
+
+  loadState();
+  loadCustomColors();
+
+  function buildSidebar(){
+    ['series1','series2','series3'].forEach(seriesKey=>{
+      const seriesNumber = seriesKey === 'series1' ? 1 : seriesKey === 'series2' ? 2 : 3;
+      const container = document.getElementById(seriesKey + '-list');
+      container.innerHTML = '';
+      disciplines.filter(d=>d.series===seriesNumber).forEach(d=>{
+        const div = document.createElement('div');
+        div.className = 'disc-item';
+        div.dataset.id = d.id;
+
+        const doneCount = Array.from({length:WEEKS}).reduce((acc,_,i)=> acc + (localStorage.getItem(doneKey(d.id,i)) === '1' ? 1 : 0), 0);
+
+        div.innerHTML = `
+          <div class="disc-name" style="font-weight:600">${d.name}</div>
+          <div class="disc-meta">
+            <div class="disc-count small">${doneCount}/${WEEKS}</div>
+            <div class="disc-perc small">${Math.round((doneCount/WEEKS)*100)}%</div>
+          </div>
+        `;
+        div.onclick = ()=>{ activateDiscipline(d.id); };
+        div.tabIndex = 0;
+        div.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') { activateDiscipline(d.id); e.preventDefault(); } });
+        container.appendChild(div);
+      });
+    });
+    if(window.lucide) setTimeout(()=>lucide.createIcons(),50);
+  }
+  buildSidebar();
+
+  // restore series collapsed state
+  ['series1','series2','series3'].forEach(s=>{
+    const stored = localStorage.getItem(uiKey(`collapsed:${s}`));
+    const list = document.getElementById(`${s}-list`);
+    const title = document.querySelector(`[data-serie="${s}"]`);
+    if(stored === '0'){ 
+      list.classList.remove('collapsed'); 
+      title.classList.remove('collapsed');
+      list.style.maxHeight = list.scrollHeight + 'px'; 
+    } else { 
+      list.classList.add('collapsed'); 
+      title.classList.add('collapsed'); 
+      list.style.maxHeight = '0px';
+      localStorage.setItem(uiKey(`collapsed:${s}`),'1'); 
+    }
+  });
+
+  // week-select populate
+  const weekSel = document.getElementById('week-select');
+  weekSel.innerHTML = Array.from({length:WEEKS},(_,i)=>`<option value="${i}">Semana ${i+1}</option>`).join('');
+  weekSel.value = state.activeWeekIndex || 0;
+  weekSel.addEventListener('change', e=>{ state.activeWeekIndex = parseInt(e.target.value,10); saveState(); renderActive(); });
+
+  // wire tabs
+  document.getElementById('tabs').addEventListener('click', e=>{
+    if(e.target.classList && e.target.classList.contains('tab')) setActiveTab(e.target.dataset.tab);
+  });
+
+  // wire controls
+  document.getElementById('prev-week').addEventListener('click', ()=>changeWeek(-1));
+  document.getElementById('next-week').addEventListener('click', ()=>changeWeek(1));
+  document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
+  document.getElementById('qa-toggle-sidebar') && document.getElementById('qa-toggle-sidebar').addEventListener('click', toggleSidebar);
+  
+  document.getElementById('btn-focus').addEventListener('click', ()=>{ state.focusMode = !state.focusMode; document.body.classList.toggle('focus-mode', state.focusMode); saveState(); });
+  document.getElementById('btn-settings').addEventListener('click', ()=>document.getElementById('settings-panel').classList.toggle('open'));
+  document.getElementById('close-settings').addEventListener('click', ()=>document.getElementById('settings-panel').classList.remove('open'));
+
+  document.getElementById('save-notes') && document.getElementById('save-notes').addEventListener('click', ()=>{ saveActiveNotes(); showToast('Notas pessoais salvas'); });
+  document.getElementById('mark-done-week').addEventListener('click', ()=>{ setDone(state.activeDisciplineId, state.activeWeekIndex, true); document.getElementById('week-done').checked = true; updateProgressBar(state.activeDisciplineId); refreshSidebarProgress(); renderPerformanceChart(); renderAllDisciplinesChart(); showToast('Aula marcada como concluída'); });
+  document.getElementById('week-done').addEventListener('change', e=>{ setDone(state.activeDisciplineId, state.activeWeekIndex, e.target.checked); updateProgressBar(state.activeDisciplineId); refreshSidebarProgress(); renderPerformanceChart(); renderAllDisciplinesChart(); });
+
+  // Export/Import/PPT
+  document.getElementById('export-json').addEventListener('click', exportAllJSON); 
+  document.getElementById('import-json-btn').addEventListener('click', ()=>document.getElementById('file-import').click());
+  document.getElementById('file-import').addEventListener('change', importJSONFile);
+  document.getElementById('export-ppt').addEventListener('click', exportWeekToPPT);
+  document.getElementById('export-html').addEventListener('click', exportHtmlWithData);
+
+  // theme selectors
+  const themeSelect = document.getElementById('theme-select');
+  themeSelect.value = state.theme || 'clear';
+  themeSelect.addEventListener('change', e=>applyTheme(e.target.value));
+  const panelTheme = document.getElementById('theme-select-panel'); 
+  if(panelTheme) {
+    panelTheme.value = state.theme || 'clear';
+    panelTheme.addEventListener('change', e=>applyTheme(e.target.value));
+  }
+  applyTheme(state.theme || 'clear');
+
+  // Wiring para cores personalizadas
+  document.getElementById('save-custom-colors') && document.getElementById('save-custom-colors').addEventListener('click', saveCustomColors);
+  
+  // collapse series click behavior (accordion)
+  ['series1','series2','series3'].forEach(s=>{
+    const title = document.querySelector(`[data-serie="${s}"]`);
+    title.addEventListener('click', ()=>{ toggleSeriesAccordion(s); });
+  });
+
+  // Wiring para a função de pesquisa
+  document.getElementById('sidebar-search').addEventListener('input', e => {
+    filterDisciplines(e.target.value);
+  });
+  
+  // Wiring para adicionar vídeos locais
+  document.getElementById('add-local-video') && document.getElementById('add-local-video').addEventListener('click', addLocalVideo);
+
+
+  // keyboard shortcuts
+  document.addEventListener('keydown', (e)=>{
+    const tag = (e.target && e.target.tagName) || '';
+    const isInput = tag === 'INPUT' || tag === 'TEXTAREA';
+    if(e.ctrlKey && (e.key === 'm' || e.key === 'M')){ e.preventDefault(); toggleSidebar(); return; }
+    if(e.ctrlKey && (e.key === 'f' || e.key === 'F')){ e.preventDefault(); state.focusMode = !state.focusMode; document.body.classList.toggle('focus-mode', state.focusMode); saveState(); return; }
+    if(e.key === 'Escape'){ if(state.focusMode){ state.focusMode = false; document.body.classList.remove('focus-mode'); saveState(); } return; }
+    if((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')){ 
+        if(isInput) return;
+        e.preventDefault();
+        togglePerfDrawer();
+    }
+    if(!isInput){
+      if(e.key === 'ArrowLeft'){ e.preventDefault(); changeWeek(-1); }
+      if(e.key === 'ArrowRight'){ e.preventDefault(); changeWeek(1); }
+    }
+  });
+
+
+  if(!state.activeDisciplineId){ const pick = disciplines.find(d=>d.series===2) || disciplines[0]; state.activeDisciplineId = pick.id; state.activeWeekIndex = 0; saveState(); }
+
+  activateDiscipline(state.activeDisciplineId);
+  refreshSidebarProgress();
+  updateProgressBar(state.activeDisciplineId);
+  // Restaura estado do drawer no load
+  if(localStorage.getItem('mtec:perf:open') === '1'){ togglePerfDrawer(true); }
+});
+
+/* ----------------------------
+   Funções Essenciais (Restante do Código)
+   ---------------------------- */
+
+function activateDiscipline(id){
+  state.activeDisciplineId = id;
+  state.activeWeekIndex = 0;
+  saveState();
+  document.querySelectorAll('.disc-item').forEach(el=>{ el.classList.toggle('active', el.dataset.id === id); });
+  updateBreadcrumb();
+  renderActive();
+  updateProgressBar(id);
+  setActiveTab(state.activeTab); 
+}
+
+/* ----------------------------
+   Accordion behavior for series
+   ---------------------------- */
+function toggleSeriesAccordion(selectedSeriesId){
+  const all = ['series1','series2','series3'];
+  all.forEach(s=>{
+    const list = document.getElementById(`${s}-list`);
+    const title = document.querySelector(`[data-serie="${s}"]`);
+    if(s === selectedSeriesId){
+      const isCollapsed = !list.classList.contains('collapsed');
+      
+      if(isCollapsed){
+        list.classList.add('collapsed');
+        title.classList.add('collapsed');
+        list.style.maxHeight = '0px';
+        localStorage.setItem(uiKey(`collapsed:${s}`),'1');
+      } else {
+        list.classList.remove('collapsed');
+        title.classList.remove('collapsed');
+        list.style.maxHeight = list.scrollHeight + 'px';
+        localStorage.setItem(uiKey(`collapsed:${s}`),'0');
+
+        all.filter(x=>x!==s).forEach(other=>{
+          document.getElementById(`${other}-list`).classList.add('collapsed');
+          document.querySelector(`[data-serie="${other}"]`).classList.add('collapsed');
+          document.getElementById(`${other}-list`).style.maxHeight = '0px';
+          localStorage.setItem(uiKey(`collapsed:${other}`),'1');
+        });
+      }
+    } else {
+      // Garante que só um acordeão esteja aberto
+      list.classList.add('collapsed');
+      title.classList.add('collapsed');
+      list.style.maxHeight = '0px';
+      localStorage.setItem(uiKey(`collapsed:${s}`),'1');
+    }
+  });
+}
+
+/* ----------------------------
+   Render active discipline/week
+   ---------------------------- */
+function renderActive(){
+  const did = state.activeDisciplineId; const wk = state.activeWeekIndex;
+  if(!did) return;
+  const disc = getDiscipline(did);
+  const key = contentKey(did,wk);
+  const content = MTEC_CONTENT_DATA[did] && MTEC_CONTENT_DATA[did][key] ? MTEC_CONTENT_DATA[did][key] : { teoria:'N/A', pratica:'N/A', fixacao:'N/A', estudos:'N/A', videos:[], simulators:[], assessments:[] };
+
+  const panel = document.getElementById('week-1-panel');
+  if(wk === 0){
+    panel.style.display='block';
+    document.getElementById('competencies').innerHTML = (disc.week1.competencias || []).map(s=>`<p>• ${s}</p>`).join('');
+    document.getElementById('skills').innerHTML = (disc.week1.habilidades || []).map(s=>`<p>• ${s}</p>`).join('');
+    document.getElementById('bases').innerHTML = (disc.week1.bases || []).map(s=>`<p>• ${s}</p>`).join('');
+    document.getElementById('block-meta').innerText = 'Semana 1 — quadro oficial (Competências / Habilidades / Bases Tecnológicas)';
+  } else {
+    panel.style.display='none';
+    document.getElementById('block-meta').innerText = 'Conteúdo programático — fixo no código-fonte HTML';
+  }
+
+  // PONTOS DE INJEÇÃO DO CONTEÚDO FIXO
+  document.getElementById('editor-theory').innerHTML = content.teoria || '';
+  document.getElementById('editor-practice').innerHTML = content.pratica || '';
+  document.getElementById('editor-fixation').innerHTML = content.fixacao || '';
+  document.getElementById('editor-studies').innerHTML = content.estudos || '';
+  
+  // Notas pessoais (ainda usam localStorage)
+  document.getElementById('teacher-notes') && (document.getElementById('teacher-notes').value = localStorage.getItem(notesKey(did,wk)) || '');
+
+  // Renderiza Vídeos, Simuladores, etc.
+  renderVideoAreas(content.videos || []);
+  renderVideosList(content.videos || []);
+  renderSimList(content.simulators || []);
+  renderAssessList(content.assessments || []);
+
+  document.getElementById('week-select').value = wk;
+  document.getElementById('week-done').checked = localStorage.getItem(doneKey(did,wk)) === '1';
+
+  const autoSaveDebounced = debounce(saveActiveNotes, 1500); 
+  const notesArea = document.getElementById('teacher-notes');
+  if(notesArea){
+    notesArea.removeEventListener('input', autoSaveDebounced);
+    notesArea.removeEventListener('blur', saveActiveNotes);
+    notesArea.addEventListener('input', autoSaveDebounced);
+    notesArea.addEventListener('blur', saveActiveNotes);
+  }
+
+  // Se o painel de desempenho estiver aberto, renderiza os gráficos
+  if(document.getElementById('perf-drawer') && document.getElementById('perf-drawer').getAttribute('aria-hidden') === 'false'){
+    renderPerformanceChart(); 
+    renderAllDisciplinesChart(); 
+    renderWeekChart(); 
+  }
+}
+
+
+/* ----------------------------
+   Video helpers
+   ---------------------------- */
+function getYoutubeId(url){ if(!url) return null; const m = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{6,})/); return m?m[1]:null; }
+function createVideoCard(url){
+  const id = getYoutubeId(url); if(!id) return null;
+  const div = document.createElement('div'); div.className='video-card';
+  div.innerHTML = `<img class="video-thumb" src="https://img.youtube.com/vi/${id}/hqdefault.jpg" alt="Miniatura do Vídeo"><div class="video-play">▶</div>`;
+  div.onclick = ()=>{ const iframe = document.createElement('iframe'); iframe.width='100%'; iframe.height='360'; iframe.src=`https://www.youtube.com/embed/${id}?autoplay=1`; iframe.allow='accelerometer; autoplay; encrypted-media; picture-in-picture'; div.replaceWith(iframe); };
+  return div;
+}
+
+function renderVideoAreas(fixedVideos){
+  const tArea = document.getElementById('theory-video-area'); const pArea = document.getElementById('practice-video-area');
+  if(tArea) tArea.innerHTML=''; if(pArea) pArea.innerHTML='';
+  
+  const localVideos = loadLocalVideos(state.activeDisciplineId, state.activeWeekIndex);
+  const allVideos = [...(fixedVideos || []).map(v => ({...v, isLocal: false})), ...localVideos];
+
+  (allVideos||[]).forEach(v=>{
+    const el = createVideoCard(v.url);
+    if(!el) return;
+    if(v.type === 'practice') pArea.appendChild(el); else tArea.appendChild(el);
+  });
+}
+
+function renderVideosList(fixedVideos) {
+  const list = document.getElementById('videos-list'); if (!list) return; list.innerHTML = '';
+  const localVideos = loadLocalVideos(state.activeDisciplineId, state.activeWeekIndex);
+  
+  const allVideos = [
+    ...(fixedVideos || []).map(v => ({...v, isLocal: false, localIndex: -1})), 
+    ...localVideos.map((v, i) => ({...v, isLocal: true, localIndex: i}))
+  ];
+
+  allVideos.forEach((v) => {
+    const div = document.createElement('div');
+    div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center'; 
+    div.style.marginBottom = '8px'; div.style.padding = '8px'; div.style.borderRadius = '6px';
+    div.style.border = `1px solid ${v.isLocal ? 'var(--accent-2)' : 'var(--border)'}`;
+    
+    div.innerHTML = `
+      <div style="flex:1">
+        <strong>${v.title || 'Vídeo Sem Título'}</strong> 
+        <div class="small">${v.url}</div>
+        <div class="small" style="color:var(--muted)">
+          Alocado: ${v.type === 'theory' ? 'Teoria' : 'Prática'} 
+          ${v.isLocal ? '— <span style="font-weight:700; color:var(--accent)">ADICIONADO LOCALMENTE</span>' : ''}
+        </div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="badge" onclick="window.open('${v.url}','_blank')" title="Abrir vídeo">Abrir</button>
+        ${v.isLocal ? `<button class="badge" onclick="deleteLocalVideo(${v.localIndex})" title="Remover vídeo">✕</button>` : ''}
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+/* ----------------------------
+   Funções auxiliares (demais)
+   ---------------------------- */
+function saveActiveNotes(){
+  const did = state.activeDisciplineId; const wk = state.activeWeekIndex;
+  if(!did) return;
+  const notes = document.getElementById('teacher-notes') ? document.getElementById('teacher-notes').value : '';
+  if(notes) {
+    localStorage.setItem(notesKey(did,wk), notes);
+  } else {
+    localStorage.removeItem(notesKey(did,wk));
+  }
+}
+function changeWeek(delta){
+  saveActiveNotes(); 
+  state.activeWeekIndex = Math.max(0, Math.min(WEEKS-1, state.activeWeekIndex + delta));
+  saveState();
+  renderActive();
+  updateBreadcrumb();
+}
+function setDone(did,wk,val){
+  if(!did) return;
+  if(val) localStorage.setItem(doneKey(did,wk),'1'); else localStorage.removeItem(doneKey(did,wk));
+  updateProgressBar(did);
+}
+function findDisciplineName(id){ const d=disciplines.find(x=>x.id===id); return d?d.name:id; }
+function updateBreadcrumb(){ const did=state.activeDisciplineId; if(!did){ document.getElementById('breadcrumbs').innerText='Selecione uma disciplina'; return; } const series = disciplines.find(d=>d.id===did).series; document.getElementById('breadcrumbs').innerText = `${series}ª Série › ${findDisciplineName(did)} › Semana ${state.activeWeekIndex+1}`; }
+function setActiveTab(tab){ 
+  state.activeTab=tab; saveState(); 
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab)); 
+  if(tab !== 'notes') saveActiveNotes();
+  document.getElementById('tab-content-container').style.display = tab==='content' ? 'block' : 'none'; 
+  document.getElementById('tab-videos').style.display = tab==='videos' ? 'block' : 'none'; 
+  document.getElementById('tab-simulators').style.display = tab==='simulators' ? 'block' : 'none'; 
+  document.getElementById('tab-assessments').style.display = tab==='assessments' ? 'block' : 'none'; 
+  document.getElementById('tab-notes').style.display = tab==='notes' ? 'block' : 'none'; 
+  document.getElementById('tab-guide').style.display = tab==='guide' ? 'block' : 'none'; 
+}
+function applyTheme(name){ 
+  const root = document.documentElement;
+  state.theme = name; 
+  saveState();
+  
+  const themeSelect = document.getElementById('theme-select');
+  const panelTheme = document.getElementById('theme-select-panel');
+  if(themeSelect) themeSelect.value = name;
+  if(panelTheme) panelTheme.value = name;
+
+  if(name === 'clear') {
+    root.removeAttribute('data-theme');
+  } else {
+    root.setAttribute('data-theme', name);
+  }
+}
+function toggleSidebar(){ state.sidebarHidden = !state.sidebarHidden; document.getElementById('sidebar').classList.toggle('hidden', state.sidebarHidden); document.getElementById('sidebar-toggle').classList.toggle('hidden', state.sidebarHidden); saveState(); }
+function updateProgressBar(did){
+  if(!did) return;
+  const done = Array.from({length:WEEKS}).reduce((acc,_,i)=> acc + (localStorage.getItem(doneKey(did,i))==='1' ? 1 : 0),0);
+  const pct = Math.round((done / WEEKS) * 100);
+  const bar = document.getElementById('disc-progress'); if(bar) bar.style.width = pct + '%';
+  const item = document.querySelector(`.disc-item[data-id="${did}"]`);
+  if(item){
+    const count = item.querySelector('.disc-count');
+    const perc = item.querySelector('.disc-perc');
+    if(count) count.innerText = `${done}/${WEEKS}`;
+    if(perc) perc.innerText = `${pct}%`;
+  }
+}
+function refreshSidebarProgress(){
+  document.querySelectorAll('.disc-item').forEach(div=>{
+    const id = div.dataset.id; if(!id) return;
+    const doneCount = Array.from({length:WEEKS}).reduce((acc,_,i)=> acc + (localStorage.getItem(doneKey(id,i))==='1'?1:0),0);
+    const pct = Math.round((doneCount / WEEKS) * 100);
+    const counter = div.querySelector('.disc-count'); if(counter) counter.innerText = `${doneCount}/${WEEKS}`;
+    let perc = div.querySelector('.disc-perc'); if(!perc){ perc = document.createElement('div'); perc.className='disc-perc small'; div.querySelector('.disc-meta') && div.querySelector('.disc-meta').appendChild(perc); }
+    perc.innerText = `${pct}%`;
+  });
+}
+function renderSimList(list){
+  const el = document.getElementById('sim-list'); if(!el) return; el.innerHTML='';
+  (list||[]).forEach((s)=>{
+    const d = document.createElement('div'); d.style.display='flex'; d.style.justifyContent='space-between'; d.style.alignItems='center'; d.style.marginBottom='8px';
+    d.innerHTML = `<div><strong>${s.name}</strong><div class="small">${s.link}</div></div><div><button class="badge" onclick="window.open('${s.link}','_blank')">Abrir</button></div>`;
+    el.appendChild(d);
+  });
+}
+function renderAssessList(list){ const el=document.getElementById('assess-list'); if(!el) return; el.innerHTML=''; (list||[]).forEach((a)=>{ const row=document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center'; row.style.marginBottom='8px'; row.innerHTML = `<div><strong>${a.title}</strong><div class="small">${a.type}</div></div><div><span class="badge" style="background:var(--accent);color:white">${a.type}</span></div>`; el.appendChild(row); }); }
+function exportAllJSON(){
+  const payload = { meta:{ exportedAt:new Date().toISOString(), type:'mtec_progress_only' }, data:{} };
+  for(let i=0;i<localStorage.length;i++){ 
+    const k=localStorage.key(i); 
+    // Inclui progresso, notas, UI e vídeos locais
+    if(k.startsWith('mtec:done')||k.startsWith('mtec:notes')||k.startsWith('mtec:ui')||k.startsWith('mtec:local_videos')||k.startsWith('mtec:custom_color')||k===APP_KEY) { 
+      payload.data[k] = localStorage.getItem(k); 
+    }
+  }
+  const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`mtec_backup_progresso_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); showToast('Backup de progresso gerado');
+}
+function importJSONFile(e){ const f=e.target.files && e.target.files[0]; if(!f) return showToast('Arquivo não selecionado'); const reader=new FileReader(); reader.onload=function(ev){ try{ const parsed=JSON.parse(ev.target.result); if(parsed && parsed.data){ if(!confirm('Importação sobrescreverá dados locais de progresso, notas, vídeos locais e cores personalizadas. Continuar?')) return; Object.keys(parsed.data).forEach(k=>localStorage.setItem(k, parsed.data[k])); showToast('Importação concluída'); location.reload(); } else showToast('Arquivo inválido'); }catch(err){ console.error(err); showToast('Erro ao importar'); }}; reader.readAsText(f); }
+function exportHtmlWithData(){
+  const dataToEmbed = {};
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    // Inclui APENAS chaves relevantes (progresso, notas, ui, vídeos locais e custom colors)
+    if(k.startsWith('mtec:done') || k.startsWith('mtec:ui') || k.startsWith('mtec:notes') || k.startsWith('mtec:local_videos') || k.startsWith('mtec:custom_color') || k === APP_KEY) {
+      dataToEmbed[k] = localStorage.getItem(k); 
+    }
+  }
+
+  const dataScript = `\nconst EMBEDDED_MTEC_DATA_RESTORE = ${JSON.stringify(dataToEmbed, null, 2)};\n/* DADOS EMBUTIDOS DE PROGRESSO, NOTAS, VÍDEOS LOCAIS E CORES PERSONALIZADAS */\n`;
+
+  let htmlContent = document.documentElement.outerHTML;
+  const regex = /const EMBEDDED_MTEC_DATA = {};/;
+  const modifiedHtml = htmlContent.replace(regex, dataScript + 'const EMBEDDED_MTEC_DATA = EMBEDDED_MTEC_DATA_RESTORE;');
+
+  const blob = new Blob([modifiedHtml],{type:'text/html'}); 
+  const url=URL.createObjectURL(blob); 
+  const a=document.createElement('a'); 
+  a.href=url; 
+  a.download=`mtec_plataforma_completa_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.html`; 
+  document.body.appendChild(a); 
+  a.click(); 
+  a.remove(); 
+  URL.revokeObjectURL(url); 
+  showToast('Página HTML completa salva com progresso e notas embutidas.');
+}
+
+// Expõe a função de deletar vídeo localmente
+window.deleteLocalVideo = deleteLocalVideo;
+// Expõe a função de abrir/fechar o drawer
+window.togglePerfDrawer = togglePerfDrawer; 
+// Expõe as funções de exportação para os botões no HTML
+window.exportWeekToPPT = exportWeekToPPT;
+</script>
+
+</body>
+</html>
