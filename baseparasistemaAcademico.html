@@ -256,10 +256,11 @@ body.focus-mode .lesson-block{font-size:1.12rem;padding:22px}
 
 <header class="app-header">
   <div class="brand">
-    <img src="https://media.licdn.com/dms/image/v2/D4D03AQE9LhJecVC3gA/profile-displayphoto-scale_200_200/B4DZq8ik_KIAAY-/0/1764099773501?e=1766016000&v=beta&t=kZUvqzPVt58kWIdMLYt2vA0_RPNmnOL1lH9LPpR1Wvw" alt="Professor">
+    <img src="https://media.licdn.com/dms/image/v2/D4D03AQE9LhJecVC3gA/profile-displayphoto-crop_800_800/B4DZq8ik_KIAAI-/0/1764099773412?e=1766620800&v=beta&t=kke9ChgnTIZqhGnYFLaCclAX3MV4lfV6i-F8zAisBpw" alt="Professor">
     <div>
-      <div style="font-weight:700;color:var(--muted)">Willian Martins</div>
+      <div style="font-weight:700;color:var(--muted)">Willian Martins Cruz </div>
       <div class="small">Professor — MTEC Automação</div>
+      <div class="small">Professor — Técnico em Elétroeletrônica</div>
     </div>
   </div>
 
@@ -359,8 +360,7 @@ body.focus-mode .lesson-block{font-size:1.12rem;padding:22px}
           <div class="lesson-block">
             <h3 id="block-title">📘 Fundamentação Teórica</h3>
             <div class="lesson-meta small" id="block-meta"></div>
-
-            <div id="week-1-panel" style="display:none;margin-bottom:12px">
+           <div id="week-1-panel" style="display:none;margin-bottom:12px">
               <h4>COMPETÊNCIAS</h4>
               <div id="competencies"></div>
               <h4>HABILIDADES</h4>
@@ -368,8 +368,7 @@ body.focus-mode .lesson-block{font-size:1.12rem;padding:22px}
               <h4>BASES TECNOLÓGICAS</h4>
               <div id="bases"></div>
             </div>
-
-            <img id="theory-img" class="lesson-img" alt="Imagem Teoria" style="display:none">
+             <img id="theory-img" class="lesson-img" alt="Imagem Teoria" style="display:none">
             <div id="editor-theory" data-static-content style="min-height:140px;border-radius:8px;padding:10px;border:1px solid var(--border);"></div>
             <div id="theory-video-area"></div>
           </div>
@@ -1446,7 +1445,7 @@ function getYoutubeId(url){ if(!url) return null; const m = url.match(/(?:v=|you
 function createVideoCard(url){
   const id = getYoutubeId(url); if(!id) return null;
   const div = document.createElement('div'); div.className='video-card';
-  div.innerHTML = `<img class="video-thumb" src="https://img.youtube.com/vi/${id}/hqdefault.jpg" alt="Miniatura do Vídeo"><div class="video-play">▶</div>`;
+  div.innerHTML = `<img class="video-thumb" src="inserir link de um possivel vídeo" alt="Miniatura do Vídeo"><div class="video-play">▶</div>`;
   div.onclick = ()=>{ const iframe = document.createElement('iframe'); iframe.width='100%'; iframe.height='360'; iframe.src=`https://www.youtube.com/embed/${id}?autoplay=1`; iframe.allow='accelerometer; autoplay; encrypted-media; picture-in-picture'; div.replaceWith(iframe); };
   return div;
 }
